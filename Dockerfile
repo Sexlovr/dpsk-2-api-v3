@@ -1,7 +1,8 @@
 FROM node:20-bullseye
 
-# Install necessary graphical dependencies, xvfb, x11vnc, novnc, window manager, and Chrome
+# Install necessary graphical dependencies, xvfb, x11vnc, novnc, window manager, Chrome, and GIT
 RUN apt-get update && apt-get install -y \
+    git \
     xvfb \
     x11vnc \
     fluxbox \
@@ -26,15 +27,15 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
-COPY --chown=user package*.json ./
-RUN npm install
+# Clone your specific repository directly into the container
+RUN git clone https://github.com/lolmaobruhhh/dpsk-2-api.git .
 
-# Copy application files
-COPY --chown=user . .
+# Install dependencies from the cloned repo
+RUN npm install
 
 # Expose ONLY 7860, which Hugging Face expects
 EXPOSE 7860
 
-# We use a custom startup script
+# Give permissions to the start script and run it
 RUN chmod +x start.sh
 CMD ["./start.sh"]
