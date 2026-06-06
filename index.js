@@ -19,12 +19,18 @@ app.use('/novnc', createProxyMiddleware({
     target: 'http://localhost:6080', 
     changeOrigin: true,
     ws: true,
-    pathRewrite: { '^/novnc': '/' }
+    pathRewrite: { '^/novnc': '/' },
+    onError: (err, req, res) => {
+        if (!res.headersSent) res.status(503).send('VNC stack is booting up. Please refresh the page in 5 seconds.');
+    }
 }));
 app.use('/websockify', createProxyMiddleware({ 
     target: 'http://localhost:6080', 
     changeOrigin: true,
-    ws: true
+    ws: true,
+    onError: (err, req, socket) => {
+        try { socket.end(); } catch (e) {}
+    }
 }));
 
 app.use(express.json({ limit: '10mb' }));
