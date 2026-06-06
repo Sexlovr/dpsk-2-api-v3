@@ -14,36 +14,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 
 var app = express();
 
-// Route noVNC web traffic and WebSocket traffic natively
-app.use('/novnc', createProxyMiddleware({ 
-    target: 'http://127.0.0.1:6080', 
-    changeOrigin: true,
-    ws: true,
-    pathRewrite: { '^/novnc': '/' },
-    on: {
-        error: (err, req, res) => {
-            if (res.writeHead) {
-                if (!res.headersSent) res.writeHead(503).end('VNC booting up...');
-            } else if (res.end) {
-                try { res.end(); } catch (e) {}
-            }
-        }
-    }
-}));
-app.use('/websockify', createProxyMiddleware({ 
-    target: 'http://127.0.0.1:6080', 
-    changeOrigin: true,
-    ws: true,
-    on: {
-        error: (err, req, socket) => {
-            if (socket.writeHead) {
-                if (!socket.headersSent) socket.writeHead(503).end('VNC booting up...');
-            } else if (socket.end) {
-                try { socket.end(); } catch (e) {}
-            }
-        }
-    }
-}));
+// VNC Proxies removed! Instead, we use a lightweight screenshot clicker architecture via HTTP endpoints.
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -281,9 +252,52 @@ app.post('/admin/browser/launch', adminAuth, async function (req, res) {
         const { launchInteractiveBrowser } = await import('./lib/browser_controller.js');
         // Do not `await` this! Let it run asynchronously in the background so the HTTP request completes and the user's dashboard can unblock and load the iFrame.
         launchInteractiveBrowser(email, getDB()).catch(console.error);
-        return res.json({ message: 'Browser launched successfully via Xvfb. Connect to VNC to finish.' });
+        return res.json({ message: 'Browser launched invisibly. Use the Interactive Viewer to solve the captcha.' });
     } catch (e) {
         return res.status(500).json({ error: 'Failed to launch browser: ' + e.message });
+    }
+});
+
+app.get('/admin/browser/status', adminAuth, async function (req, res) {
+    try {
+        const { getBrowserStatus } = await import('./lib/browser_controller.js');
+        res.json(getBrowserStatus());
+    } catch (e) {
+        res.status(500).json({ status: 'error', message: e.message });
+    }
+});
+
+app.get('/admin/browser/screenshot', adminAuth, async function (req, res) {
+    try {
+        const { getScreenshot } = await import('./lib/browser_controller.js');
+        const img = await getScreenshot();
+        if (!img) return res.status(404).end('No screenshot available yet');
+        res.set('Content-Type', 'image/jpeg');
+        res.send(img);
+    } catch (e) {
+        res.status(500).end();
+    }
+});
+
+app.post('/admin/browser/click', adminAuth, async function (req, res) {
+    var { x, y } = req.body;
+    try {
+        const { clickAt } = await import('./lib/browser_controller.js');
+        await clickAt(Number(x), Number(y));
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/admin/browser/type', adminAuth, async function (req, res) {
+    var { text } = req.body;
+    try {
+        const { typeText } = await import('./lib/browser_controller.js');
+        await typeText(text);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 
