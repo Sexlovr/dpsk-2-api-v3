@@ -1,13 +1,7 @@
-FROM node:20-bullseye
-
-# Install necessary graphical dependencies, xvfb, x11vnc, novnc, window manager and GIT
+# Install virtual framebuffer (Xvfb) and basic required tools, skipping all VNC bloat!
 RUN apt-get update && apt-get install -y \
     git \
     xvfb \
-    x11vnc \
-    fluxbox \
-    novnc \
-    websockify \
     dos2unix \
     curl \
     wget \
@@ -15,14 +9,11 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix noVNC launch script paths
-RUN ln -s /usr/share/novnc/vnc_auto.html /usr/share/novnc/index.html || true
-
 # Bypass Hugging Face global cache by polling the latest commit. 
-ADD "https://api.github.com/repos/lolmaobruhhh/dpsk-2-api/commits?per_page=1" /tmp/latest_commit
+ADD "https://api.github.com/repos/Sexlovr/dpsk-2-api-v3/commits?per_page=1" /tmp/latest_commit
 
 # Clone the repo and install OS dependencies AS ROOT
-RUN git clone https://github.com/lolmaobruhhh/dpsk-2-api.git /home/node/app
+RUN git clone https://github.com/Sexlovr/dpsk-2-api-v3.git /home/node/app
 WORKDIR /home/node/app
 
 RUN npm install
