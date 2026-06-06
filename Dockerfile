@@ -1,3 +1,5 @@
+FROM node:20-bullseye
+
 # Install virtual framebuffer (Xvfb) and basic required tools, skipping all VNC bloat!
 RUN apt-get update && apt-get install -y \
     git \
