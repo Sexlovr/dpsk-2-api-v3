@@ -195,7 +195,12 @@ function buildOpenAIResponse(id, model, content, usage) {
 // ══════════════════════════════════════════
 
 function adminAuth(req, res, next) {
+    // <img> tags cannot send custom Authorization headers, so we allow them to pass the token in the URL query string
     var authHeader = req.headers.authorization;
+    if (!authHeader && req.query.token) {
+        authHeader = 'Bearer ' + req.query.token;
+    }
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
