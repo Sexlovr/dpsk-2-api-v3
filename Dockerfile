@@ -28,6 +28,10 @@ ENV HOME=/home/node \
 
 WORKDIR $HOME/app
 
+# Bypass Hugging Face global cache by polling the latest commit. 
+# Whenever you push a new commit, this layer invalidates automatically!
+ADD "https://api.github.com/repos/lolmaobruhhh/dpsk-2-api/commits?per_page=1" /tmp/latest_commit
+
 # Clone your specific repository directly into the container
 RUN git clone https://github.com/lolmaobruhhh/dpsk-2-api.git .
 
