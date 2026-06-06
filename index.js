@@ -22,7 +22,11 @@ app.use('/novnc', createProxyMiddleware({
     pathRewrite: { '^/novnc': '/' },
     on: {
         error: (err, req, res) => {
-            if (!res.headersSent) res.status(503).send('VNC stack is booting up. Please refresh the page in 5 seconds.');
+            if (res.writeHead) {
+                if (!res.headersSent) res.writeHead(503).end('VNC booting up...');
+            } else if (res.end) {
+                try { res.end(); } catch (e) {}
+            }
         }
     }
 }));
@@ -32,7 +36,11 @@ app.use('/websockify', createProxyMiddleware({
     ws: true,
     on: {
         error: (err, req, socket) => {
-            try { socket.end(); } catch (e) {}
+            if (socket.writeHead) {
+                if (!socket.headersSent) socket.writeHead(503).end('VNC booting up...');
+            } else if (socket.end) {
+                try { socket.end(); } catch (e) {}
+            }
         }
     }
 }));
