@@ -20,16 +20,20 @@ app.use('/novnc', createProxyMiddleware({
     changeOrigin: true,
     ws: true,
     pathRewrite: { '^/novnc': '/' },
-    onError: (err, req, res) => {
-        if (!res.headersSent) res.status(503).send('VNC stack is booting up. Please refresh the page in 5 seconds.');
+    on: {
+        error: (err, req, res) => {
+            if (!res.headersSent) res.status(503).send('VNC stack is booting up. Please refresh the page in 5 seconds.');
+        }
     }
 }));
 app.use('/websockify', createProxyMiddleware({ 
     target: 'http://127.0.0.1:6080', 
     changeOrigin: true,
     ws: true,
-    onError: (err, req, socket) => {
-        try { socket.end(); } catch (e) {}
+    on: {
+        error: (err, req, socket) => {
+            try { socket.end(); } catch (e) {}
+        }
     }
 }));
 
