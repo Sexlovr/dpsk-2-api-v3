@@ -1,13 +1,12 @@
-FROM node:20-slim
+FROM node:20-bullseye
 
 # Prevent Playwright from downloading its own bundled Chromium (~400MB) — we use the system Chrome instead!
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     PLAYWRIGHT_BROWSERS_PATH=0
 
 # Install necessary graphical dependencies, xvfb, x11vnc, novnc, window manager, Chrome, and GIT
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     git \
-    ca-certificates \
     xvfb \
     x11vnc \
     fluxbox \
@@ -20,8 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt-get update && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
 # Fix noVNC launch script paths
 RUN ln -s /usr/share/novnc/vnc_auto.html /usr/share/novnc/index.html || true
@@ -41,7 +40,7 @@ ADD "https://api.github.com/repos/lolmaobruhhh/dpsk-2-api/commits?per_page=1" /t
 RUN git clone https://github.com/lolmaobruhhh/dpsk-2-api.git .
 
 # Install dependencies (Playwright will NOT download Chromium thanks to env vars above)
-RUN npm install --omit=dev
+RUN npm install
 
 # Fix Windows CRLF line endings on the shell script so bash doesn't crash on boot
 RUN dos2unix start.sh
@@ -52,3 +51,4 @@ EXPOSE 7860
 # Give permissions to the start script and run it
 RUN chmod +x start.sh
 CMD ["./start.sh"]
+
