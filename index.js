@@ -647,7 +647,9 @@ async function boot() {
 
         // Self-ping keep-alive to prevent HF Spaces from pausing due to inactivity
         setInterval(() => {
-            fetch(`http://localhost:${PORT}/`).catch(() => {});
+            // HF router must see the traffic! Localhost bypasses the router.
+            const targetUrl = process.env.SPACE_HOST ? `https://${process.env.SPACE_HOST}/` : `http://localhost:${PORT}/`;
+            fetch(targetUrl).catch(() => {});
         }, 10 * 1000); // Every 10 seconds
         console.log('[Keep-Alive] Self-ping active (every 10 seconds)');
     });
