@@ -16,7 +16,7 @@ var app = express();
 
 // Route noVNC web traffic and WebSocket traffic natively
 app.use('/novnc', createProxyMiddleware({ 
-    target: 'http://localhost:6080', 
+    target: 'http://127.0.0.1:6080', 
     changeOrigin: true,
     ws: true,
     pathRewrite: { '^/novnc': '/' },
@@ -25,7 +25,7 @@ app.use('/novnc', createProxyMiddleware({
     }
 }));
 app.use('/websockify', createProxyMiddleware({ 
-    target: 'http://localhost:6080', 
+    target: 'http://127.0.0.1:6080', 
     changeOrigin: true,
     ws: true,
     onError: (err, req, socket) => {
